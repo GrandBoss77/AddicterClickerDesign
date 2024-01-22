@@ -8,9 +8,10 @@ public class PlayerData
 {
     [Header("Dynamic Values")]
     public int playerMoney = 0;
+    public int playerClickValue = 1;
     public float passiveGainTime = 100f; // Change this to 10 seconds
+    [Header("Refrences")]
     public GameObject clickEffect = null;
-    // ...
 }
 
 public class GameManager : MonoBehaviour
@@ -20,12 +21,16 @@ public class GameManager : MonoBehaviour
     [Header("Static References")]
     public PlayerData CurrentPlayerData = null;
     public TextMeshProUGUI PlayerMoneyText = null;
-    public RectTransform buttonRectTransform = null;
 
     public Button buttonToShake;
     public float shakeDuration = 0.5f;
     public float shakeMagnitude = 0.1f;
 
+
+    private void Awake()
+    {
+        GlobalGameManager = this;
+    }
 
     private void Update()
     {
@@ -50,7 +55,7 @@ public class GameManager : MonoBehaviour
 
     public void OnClick()
     {
-        CurrentPlayerData.playerMoney++;
+        CurrentPlayerData.playerMoney += CurrentPlayerData.playerClickValue;
         ShakeButton();
     }
 
