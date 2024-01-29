@@ -9,9 +9,11 @@ public class PlayerData
     [Header("Dynamic Values")]
     public int playerMoney = 0;
     public int playerClickValue = 1;
-    public float passiveGainTime = 100f; // Change this to 10 seconds
-    [Header("Refrences")]
-    public GameObject clickEffect = null;
+    public float passiveGainTime = 100f;
+    public float criticalChance = 0.02f;
+    public float criticalStrikeMultiplier = 2f;
+
+    //[Header("Refrences")]
 }
 
 public class GameManager : MonoBehaviour
@@ -55,9 +57,21 @@ public class GameManager : MonoBehaviour
 
     public void OnClick()
     {
-        CurrentPlayerData.playerMoney += CurrentPlayerData.playerClickValue;
+        // Check if a critical strike occurs based on a percentage chance
+        if (Random.value < CurrentPlayerData.criticalChance)
+        {
+            float increasedClickValue = CurrentPlayerData.playerClickValue * CurrentPlayerData.criticalStrikeMultiplier;
+            CurrentPlayerData.playerMoney += (int)increasedClickValue;
+        }
+        else
+        {
+            // Regular click without a critical strike
+            CurrentPlayerData.playerMoney += CurrentPlayerData.playerClickValue;
+        }
+
         ShakeButton();
     }
+
 
     private void ShakeButton()
     {

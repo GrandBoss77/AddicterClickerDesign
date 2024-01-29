@@ -16,6 +16,13 @@ public class UpgradeManager : MonoBehaviour
 {
     public List<UpgradeValues> upgradeValuesList = new List<UpgradeValues>();
     public List<TextMeshProUGUI> buttonText = new List<TextMeshProUGUI>();
+    bool xOption = true;
+
+    [Header("IncreaseStats")]
+    public float decreasePassiveGainTime = 1.2f;
+    public float increaseCriticalChance = 0.02f;
+    public float criticalStrikeValueIncrease = 2f;
+    public int playerClickIncrease = 1;
 
     private void Start()
     {
@@ -23,6 +30,11 @@ public class UpgradeManager : MonoBehaviour
         {
             buttonText[i].text = "Cost: " + upgradeValuesList[i].buttonCost.ToString("F2");
         }
+    }
+
+    private void Update()
+    {
+        Debug.Log(xOption);
     }
 
     // Get the current upgrade values based on the specified index
@@ -36,6 +48,28 @@ public class UpgradeManager : MonoBehaviour
         {
             Debug.LogError("Invalid upgrade index");
             return null;
+        }
+    }
+
+    public void Upgrade(int buttonIndex)
+    {
+        UpgradeValues currentUpgradeValues = GetCurrentUpgradeValues(buttonIndex);
+
+        if (currentUpgradeValues != null)
+        {
+            if (xOption)
+            {
+                // If xOption is true, upgrade only once
+                IncreaseCostOnButton(buttonIndex);
+            }
+            else
+            {
+                // If xOption is false, keep upgrading until the player can't afford it
+                while (GameManager.GlobalGameManager.CurrentPlayerData.playerMoney >= currentUpgradeValues.buttonCost)
+                {
+                    IncreaseCostOnButton(buttonIndex);
+                }
+            }
         }
     }
 
@@ -65,9 +99,14 @@ public class UpgradeManager : MonoBehaviour
                 break;
             case 1:
                 Debug.Log("Button1");
+                IncreaseCriticalChance();
                 break;
             case 2:
                 Debug.Log("Button2");
+                IncreaseCriticalStrikeMultiplier();
+                break;
+            case 3:
+                Debug.Log("Button3");
                 IncreaseClickValue();
                 break;
             // Add more cases for other buttons as needed
@@ -79,11 +118,33 @@ public class UpgradeManager : MonoBehaviour
 
     void PassiveGainTimeUpgraded()
     {
-        GameManager.GlobalGameManager.CurrentPlayerData.passiveGainTime /= 1.2f;
+        GameManager.GlobalGameManager.CurrentPlayerData.passiveGainTime /= decreasePassiveGainTime;
+    }
+
+    void IncreaseCriticalChance()
+    {
+        GameManager.GlobalGameManager.CurrentPlayerData.criticalChance += increaseCriticalChance;
+    }
+
+    void IncreaseCriticalStrikeMultiplier()
+    {
+        GameManager.GlobalGameManager.CurrentPlayerData.criticalStrikeMultiplier += criticalStrikeValueIncrease;
     }
 
     void IncreaseClickValue()
     {
-        GameManager.GlobalGameManager.CurrentPlayerData.playerClickValue++;
+        GameManager.GlobalGameManager.CurrentPlayerData.playerClickValue += playerClickIncrease;
+    }
+
+    public void ToggleMode1(bool max)
+    {
+        if(!max)
+        {
+            xOption = max;
+        }
+        else
+        {
+            xOption = max;
+        }
     }
 }
