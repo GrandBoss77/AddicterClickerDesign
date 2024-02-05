@@ -22,7 +22,16 @@ public class GameManager : MonoBehaviour
 
     [Header("Static References")]
     public PlayerData CurrentPlayerData = null;
+    [Header("StatsText")]
     public TextMeshProUGUI PlayerMoneyText = null;
+    public TextMeshProUGUI passiveGainText = null;
+    public TextMeshProUGUI criticalStrikeMultiplierText = null;
+    public TextMeshProUGUI criticalChanceText = null;
+    public TextMeshProUGUI clickValueText = null;
+
+    [Header("Effects")]
+    public ParticleSystem clickEffect = null;
+    public ParticleSystem criticalEffect = null;
 
     public Button buttonToShake;
     public float shakeDuration = 0.5f;
@@ -34,15 +43,43 @@ public class GameManager : MonoBehaviour
         GlobalGameManager = this;
     }
 
-    private void Update()
-    {
-        PlayerMoneyText.text = CurrentPlayerData.playerMoney.ToString() + "$";
-    }
-
     private void Start()
     {
-        // Start the coroutine for passive money gain
         StartCoroutine(PassiveMoneyGain());
+        StartCoroutine(UpdatePassiveGainUIText());
+    }
+
+    private void Update()
+    {
+        UpdatePlayerTextStats();
+    }
+
+    private void UpdatePlayerTextStats()
+    {
+        int playerMoney = CurrentPlayerData.playerMoney;
+        PlayerMoneyText.text = FormatNumber(playerMoney) + "$";
+
+        criticalStrikeMultiplierText.text = "Crit multiplier " + GlobalGameManager.CurrentPlayerData.criticalStrikeMultiplier.ToString() + "X";
+
+        string convertedCriticalChance = (CurrentPlayerData.criticalChance * 100f).ToString(" 0") + "%";
+        criticalChanceText.text = "Critical chance" + convertedCriticalChance;
+
+        clickValueText.text = GlobalGameManager.CurrentPlayerData.playerClickValue.ToString() + "/click";
+    }
+
+    private string FormatNumber(int number)
+    {
+        string[] suffixes = { "", "K", "M", "B", "T" }; // Add more suffixes as needed
+        int index = 0;
+        float formattedNumber = number;
+
+        while (formattedNumber >= 1000f && index < suffixes.Length - 1)
+        {
+            formattedNumber /= 1000f;
+            index++;
+        }
+
+        return formattedNumber.ToString("0.#") + suffixes[index];
     }
 
     // Coroutine for passive money gain
@@ -55,6 +92,33 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Coroutine for updating passive gain time UI
+    IEnumerator UpdatePassiveGainUIText()
+    {
+        float remainingTime = CurrentPlayerData.passiveGainTime;
+
+        while (true)
+        {
+            remainingTime -= 1f;
+
+            if (remainingTime <= 0f)
+            {
+                remainingTime = CurrentPlayerData.passiveGainTime;
+            }
+
+            passiveGainText.text = "Next Gain In: " + FormatTime(remainingTime);
+            yield return new WaitForSeconds(1f); // Update every second
+        }
+    }
+
+    // Format time as minutes:seconds
+    private string FormatTime(float timeInSeconds)
+    {
+        int minutes = Mathf.FloorToInt(timeInSeconds / 60f);
+        int seconds = Mathf.FloorToInt(timeInSeconds % 60f);
+        return string.Format("{0:00}:{1:00}", minutes, seconds);
+    }
+
     public void OnClick()
     {
         // Check if a critical strike occurs based on a percentage chance
@@ -62,16 +126,18 @@ public class GameManager : MonoBehaviour
         {
             float increasedClickValue = CurrentPlayerData.playerClickValue * CurrentPlayerData.criticalStrikeMultiplier;
             CurrentPlayerData.playerMoney += (int)increasedClickValue;
+            criticalEffect.Play();
+            
         }
         else
         {
             // Regular click without a critical strike
             CurrentPlayerData.playerMoney += CurrentPlayerData.playerClickValue;
+            clickEffect.Play();
         }
 
         ShakeButton();
     }
-
 
     private void ShakeButton()
     {

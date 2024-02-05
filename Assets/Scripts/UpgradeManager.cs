@@ -26,28 +26,14 @@ public class UpgradeManager : MonoBehaviour
 
     private void Start()
     {
+        UpdateButtonText();
+    }
+
+    private void UpdateButtonText()
+    {
         for (int i = 0; i < buttonText.Count && i < upgradeValuesList.Count; i++)
         {
-            buttonText[i].text = "Cost: " + upgradeValuesList[i].buttonCost.ToString("F2");
-        }
-    }
-
-    private void Update()
-    {
-        Debug.Log(xOption);
-    }
-
-    // Get the current upgrade values based on the specified index
-    private UpgradeValues GetCurrentUpgradeValues(int index)
-    {
-        if (index >= 0 && index < upgradeValuesList.Count)
-        {
-            return upgradeValuesList[index];
-        }
-        else
-        {
-            Debug.LogError("Invalid upgrade index");
-            return null;
+            buttonText[i].text = "Cost: " + FormatNumber(upgradeValuesList[i].buttonCost) + "$";
         }
     }
 
@@ -73,6 +59,20 @@ public class UpgradeManager : MonoBehaviour
         }
     }
 
+    // Get the current upgrade values based on the specified index
+    private UpgradeValues GetCurrentUpgradeValues(int index)
+    {
+        if (index >= 0 && index < upgradeValuesList.Count)
+        {
+            return upgradeValuesList[index];
+        }
+        else
+        {
+            Debug.LogError("Invalid upgrade index");
+            return null;
+        }
+    }
+
     public void IncreaseCostOnButton(int buttonIndex)
     {
         UpgradeValues currentUpgradeValues = GetCurrentUpgradeValues(buttonIndex);
@@ -83,10 +83,24 @@ public class UpgradeManager : MonoBehaviour
             GameManager.GlobalGameManager.CurrentPlayerData.playerMoney -= (int)currentUpgradeValues.buttonCost;
             currentUpgradeValues.buttonCost *= currentUpgradeValues.increaseButtonCost;
 
-
             // Update the button text after increasing the cost
-            buttonText[buttonIndex].text = "Cost: " + currentUpgradeValues.buttonCost.ToString("F2");
+            buttonText[buttonIndex].text = "Cost: " + FormatNumber(currentUpgradeValues.buttonCost) + "$";
         }
+    }
+
+    private string FormatNumber(float number)
+    {
+        string[] suffixes = { "", "K", "M", "B", "T" }; // Add more suffixes as needed
+        int index = 0;
+        float formattedNumber = number;
+
+        while (formattedNumber >= 1000f && index < suffixes.Length - 1)
+        {
+            formattedNumber /= 1000f;
+            index++;
+        }
+
+        return formattedNumber.ToString("0.#") + suffixes[index];
     }
 
     public void FindSpecificUpgrade(int button)
@@ -94,19 +108,15 @@ public class UpgradeManager : MonoBehaviour
         switch (button)
         {
             case 0:
-                Debug.Log("Button0");
                 PassiveGainTimeUpgraded();
                 break;
             case 1:
-                Debug.Log("Button1");
                 IncreaseCriticalChance();
                 break;
             case 2:
-                Debug.Log("Button2");
                 IncreaseCriticalStrikeMultiplier();
                 break;
             case 3:
-                Debug.Log("Button3");
                 IncreaseClickValue();
                 break;
             // Add more cases for other buttons as needed
@@ -136,15 +146,15 @@ public class UpgradeManager : MonoBehaviour
         GameManager.GlobalGameManager.CurrentPlayerData.playerClickValue += playerClickIncrease;
     }
 
-    public void ToggleMode1(bool max)
+    public void ToggleMode1(bool isToggelOn)
     {
-        if(!max)
+        if(!isToggelOn)
         {
-            xOption = max;
+            xOption = isToggelOn;
         }
         else
         {
-            xOption = max;
+            xOption = isToggelOn;
         }
     }
 }
